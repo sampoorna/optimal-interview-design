@@ -47,12 +47,12 @@ for cut=1:numel(cold_users')
 	rated_item_indices = cold(cold_user_indices, 1);
 	cold_ratings = cold(cold_user_indices, 3);
 	% Discard if too few, else compute vector by GD
-	%if numel(cold_ratings >= 30)
+	if numel(cold_ratings >= 30)
 		item_vectors = w1_M1(rated_item_indices, :);
 		error = @(x)sum((item_vectors*x' + mean_rating - cold_ratings).^2);
 		[cold_user_vectors(cu, :), fval] = fminunc(error, cold_user_vectors(cu, :), options);
 		fprintf('%f .... \n', fval)
-	%end
+	end
 end
 
 % Save variable
