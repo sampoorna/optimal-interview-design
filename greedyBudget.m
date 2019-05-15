@@ -70,7 +70,6 @@ true_ratings = cell(max(algos), 1);
 P_estimate = zeros(max(algos), NUM_FACTORS);
 P_error = zeros(num_items, max(algos));
 RMSE = zeros(num_items, max(algos));
-MAE = zeros(num_items, max(algos));
 bg2time = zeros(num_items, 2);
 fgtime = zeros(num_items, 2);
 fg2time = zeros(num_items, 2);
@@ -710,117 +709,108 @@ end
 	end
 %end
 endTime = toc(runTime);
+
+%%% Construct filename for graph plot
+name = '';
+if dataset == 1
+	name = strcat(name, 'netflix_');
+elseif dataset == 2
+	name = strcat(name, 'jester_');
+elseif dataset == 3
+	name = strcat(name, 'ml1m_');
+elseif dataset == 4
+	name = strcat(name, 'ml100k_');
+elseif dataset == 5
+	name = strcat(name, 'ml20m_');
+elseif dataset == 6
+	name = strcat(name, 'epi_');
+end
+figname = strcat(name, num2str(BUDGET), 'users_', num2str(num_iter), 'iter_', num2str(NUM_FACTORS), 'dim_', num2str(num_items), 'items');
+if cont == 1
+	figname = strcat(figname, '_cont');
+end
+
 %%% Generate graph plots
-% fidxs = unique(fidxs);
-% h = figure;
-% hold on;
-% colors = {'h-', 'ro-', 'kd-', 'm-', 'k-', 'c+--', 'y', 'g*:', 'ko--', 'rd--', 'ko:', 'gd-', 'yo-', 'bo-'};
-% for a=algos
-% 	if a ~= 10
-% 		%fidxs = find(RMSE(:, a)~=0);
-% 		xaxis = [1:num_items];
-% 		plot(xaxis(fidxs), RMSE(fidxs, a)'/(BUDGET), colors{a}, 'LineWidth', 2)
-% 	else
-% 		%fidxs = find(RMSE(:, a)~=0);
-% 		xaxis = [1:num_items];
-% 		plot(xaxis(fidxs), RMSE(fidxs, a)'/(num_iter*BUDGET), colors{a}, 'LineWidth', 2)
-% 	end
-% end
 
-% hold off;
-% xlabel('Number of movies rated')
-% ylabel('RMSE')
-% t = strcat('Average number of candidate items per user: ', num2str(avg_per_user/BUDGET));
-% title(t);
-% algonames = {'ABG2', 'ABG', 'AFG', 'AFG2', 'HV', 'BG2', 'BG', 'FG', 'Anti BG', 'RS', 'FG2', 'Ent0', 'Ent', 'P'};
+%% Plotting RMSE versus number of items selected for all algorithms
+fidxs = unique(fidxs);
+h = figure;
+hold on;
+colors = {'h-', 'ro-', 'kd-', 'm-', 'k-', 'c+--', 'y', 'g*:', 'ko--', 'rd--', 'ko:', 'gd-', 'yo-', 'bo-'};
+for a=algos
+	if a ~= 10
+		xaxis = [1:num_items];
+		plot(xaxis(fidxs), RMSE(fidxs, a)'/(BUDGET), colors{a}, 'LineWidth', 2)
+	else
+		xaxis = [1:num_items];
+		plot(xaxis(fidxs), RMSE(fidxs, a)'/(num_iter*BUDGET), colors{a}, 'LineWidth', 2)
+	end
+end
 
-% legend(algonames{algos});%, 'Training error - ABG2', 'Training error - ABG', 'Training error - Fwd', 'Training error - Random');
+hold off;
+xlabel('Number of movies rated')
+ylabel('RMSE')
+title(strcat('Average number of candidate items per user: ', num2str(avg_per_user/BUDGET)));
+algonames = {'ABG2', 'ABG', 'AFG', 'AFG2', 'HV', 'BG2', 'BG', 'FG', 'Anti BG', 'RS', 'FG2', 'Ent0', 'Ent', 'P'};
+legend(algonames{algos});
 
-% %plot(training_error(:, 1)'/(BUDGET), 'ko--', 'LineWidth', 3)
-% %plot(training_error(:, 2)'/(BUDGET), 'k.', 'LineWidth', 3)
-% %plot(training_error(:, 3)'/(BUDGET), 'ko', 'LineWidth', 3)
-% %plot(training_error(:, 10)'/(num_iter*BUDGET), 'k*--', 'LineWidth', 3)
-% %hold off;
-% %xlabel('Number of movies rated')
-% %ylabel('MAE')
-% %algonames = {'Accelerated backward Greedy 2', 'Accelerated backward', 'Forward greedy', 'Random', 'High variance', 'Backward Greedy 2', 'Backward Greedy', 'Anti backward'};
-% %legend(algonames{1:algos});
-% %legend('Backward Greedy 2', 'Accelerated backward', 'Forward greedy', 'Random', 'Training error - BG2', 'Training error - BG', 'Training error - Fwd', 'Training error - Random');
+csvwrite(strcat(figname, '.csv'), RMSE)
+saveas(h, figname, 'fig');
+saveas(h, figname, 'png');
 
-% %%% Construct filename for graph plot
-% name = '';
-% if dataset == 1
-% 	name = strcat(name, 'netflix_');
-% elseif dataset == 2
-% 	name = strcat(name, 'jester_');
-% elseif dataset == 3
-% 	name = strcat(name, 'ml1m_');
-% elseif dataset == 4
-% 	name = strcat(name, 'ml100k_');
-% elseif dataset == 5
-% 	name = strcat(name, 'ml20m_');
-% elseif dataset == 6
-% 	name = strcat(name, 'epi_');
-% end
-% figname = strcat(name, num2str(BUDGET), 'users_', num2str(num_iter), 'iter_', num2str(NUM_FACTORS), 'dim_', num2str(num_items), 'items');
-% if cont == 1
-% 	figname = strcat(figname, '_cont');
-% end
-% % csvwrite(strcat(figname, '.csv'), RMSE)
-% saveas(h,figname,'fig');
-% saveas(h,figname,'png');
-% % save(strcat(name, '_user_size_accuracy.mat'), 'user_size_accuracy')
+%% Plotting error in user profile determination versus number of items selected for all algorithms
+g = figure;
+hold on;
+for a=algos
+	if a ~= 10
+		fidxs = find(P_error(:, a)~=0);
+		xaxis = [1:num_items];
+		plot(xaxis(fidxs), P_error(fidxs, a)'/(BUDGET), colors{a}, 'LineWidth', 2)
+	else
+		fidxs = find(P_error(:, a)~=0);
+		xaxis = [1:num_items];
+		plot(xaxis(fidxs), P_error(fidxs, a)'/(num_iter*BUDGET), colors{a}, 'LineWidth', 2)
+	end
+end
+xlabel('Number of movies rated')
+ylabel('User profile error')
+legend(algonames{algos});
+hold off;
+figname = strcat(name, 'PuError_', num2str(BUDGET), 'users_', num2str(num_iter), 'iter_', num2str(NUM_FACTORS), 'dim_', num2str(num_items), 'items');
+if cont == 1
+	figname = strcat(figname, '_cont');
+end
+csvwrite(strcat(figname, '.csv'), P_error)
+saveas(g, figname, 'fig');
+saveas(g, figname, 'png');
 
-% g = figure;
-% hold on;
-% for a=algos
-% 	if a ~= 10
-% 		%fidxs = find(P_error(:, a)~=0);
-% 		xaxis = [1:num_items];
-% 		plot(xaxis(fidxs), P_error(fidxs, a)'/(BUDGET), colors{a}, 'LineWidth', 2)
-% 	else
-% 		%fidxs = find(P_error(:, a)~=0);
-% 		xaxis = [1:num_items];
-% 		plot(xaxis(fidxs), P_error(fidxs, a)'/(num_iter*BUDGET), colors{a}, 'LineWidth', 2)
-% 	end
-% end
-% xlabel('Number of movies rated')
-% ylabel('User profile error')
-% legend(algonames{algos});
-% hold off;
-% figname = strcat(name, 'PuError_', num2str(BUDGET), 'users_', num2str(num_iter), 'iter_', num2str(NUM_FACTORS), 'dim_', num2str(num_items), 'items');
-% if cont == 1
-% 	figname = strcat(figname, '_cont');
-% end
-% % csvwrite(strcat(figname, '.csv'), P_error)
-% saveas(g, figname, 'fig');
-% saveas(g, figname, 'png');
-% %fgtime(fgtime == 0) = NaN;
-% %fidxs = ~isnan(fgtime(:, 1));
-% xaxis = [1:num_items];
-% f = figure;
-% hold on;
-% plot(xaxis(fidxs), bgtime(fidxs, 2)'/(BUDGET), 'ko-', 'LineWidth', 3)
-% plot(xaxis(fidxs), bgtime(fidxs, 1)'/(BUDGET), 'k-', 'LineWidth', 3)
-% plot(xaxis(fidxs), bg2time(fidxs, 2)'/(BUDGET), 'go-', 'LineWidth', 3)
-% plot(xaxis(fidxs), bg2time(fidxs, 1)'/(BUDGET), 'g-', 'LineWidth', 3)
-% plot(xaxis(fidxs), fgtime(fidxs, 2)'/(BUDGET),  'bo-', 'LineWidth', 3)
-% plot(xaxis(fidxs), fgtime(fidxs, 1)'/(BUDGET), 'b-', 'LineWidth', 3)
-% plot(xaxis(fidxs), fg2time(fidxs, 2)'/(BUDGET), 'ro', 'LineWidth', 3)
-% plot(xaxis(fidxs), fg2time(fidxs, 1)'/(BUDGET), 'r--', 'LineWidth', 3)
+%% Plotting runtime versus number of items selected for all algorithms
+fgtime(fgtime == 0) = NaN;
+fidxs = ~isnan(fgtime(:, 1));
 
-% legend('BG', 'ABG', 'BG2', 'ABG2', 'FG', 'AFG', 'FG2', 'AFG2');
-% %legend('FG', 'FG Acc');
-% hold off;
-% xlabel('Number of movies rated')
-% ylabel('Time in seconds')
-% figname = strcat(name, 'time_', num2str(BUDGET), 'users_', num2str(NUM_FACTORS), 'dim_', num2str(num_items), 'items');
-% if cont == 1
-% 	figname = strcat(figname, '_cont');
-% end
-% % csvwrite(strcat(figname, '_bgtime.csv'), bgtime)
-% % csvwrite(strcat(figname, '_bg2time.csv'), bg2time)
-% % csvwrite(strcat(figname, '_fgtime.csv'), fgtime)
-% % csvwrite(strcat(figname, '_fg2time.csv'), fg2time)
-% saveas(f, figname, 'fig');
-% saveas(f, figname, 'png');
+xaxis = [1:num_items];
+f = figure;
+hold on;
+plot(xaxis(fidxs), bgtime(fidxs, 2)'/(BUDGET), 'ko-', 'LineWidth', 3)
+plot(xaxis(fidxs), bgtime(fidxs, 1)'/(BUDGET), 'k-', 'LineWidth', 3)
+plot(xaxis(fidxs), bg2time(fidxs, 2)'/(BUDGET), 'go-', 'LineWidth', 3)
+plot(xaxis(fidxs), bg2time(fidxs, 1)'/(BUDGET), 'g-', 'LineWidth', 3)
+plot(xaxis(fidxs), fgtime(fidxs, 2)'/(BUDGET),  'bo-', 'LineWidth', 3)
+plot(xaxis(fidxs), fgtime(fidxs, 1)'/(BUDGET), 'b-', 'LineWidth', 3)
+plot(xaxis(fidxs), fg2time(fidxs, 2)'/(BUDGET), 'ro', 'LineWidth', 3)
+plot(xaxis(fidxs), fg2time(fidxs, 1)'/(BUDGET), 'r--', 'LineWidth', 3)
+
+legend('BG', 'ABG', 'BG2', 'ABG2', 'FG', 'AFG', 'FG2', 'AFG2');
+hold off;
+xlabel('Number of movies rated')
+ylabel('Time in seconds')
+figname = strcat(name, 'time_', num2str(BUDGET), 'users_', num2str(NUM_FACTORS), 'dim_', num2str(num_items), 'items');
+if cont == 1
+	figname = strcat(figname, '_cont');
+end
+csvwrite(strcat(figname, '_bgtime.csv'), bgtime)
+csvwrite(strcat(figname, '_bg2time.csv'), bg2time)
+csvwrite(strcat(figname, '_fgtime.csv'), fgtime)
+csvwrite(strcat(figname, '_fg2time.csv'), fg2time)
+saveas(f, figname, 'fig');
+saveas(f, figname, 'png');
