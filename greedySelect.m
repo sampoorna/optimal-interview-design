@@ -6,7 +6,6 @@ function [result, time] = greedySelect(algo, candidate_items, w1_M1, num_items, 
 		result = candidate_items;
 	else
 		if algo == 1
-			%result = backward_greedy(candidate_items, w1_M1, num_items, test);
 			result = acc_backward_greedy2(candidate_items, w1_M1, num_items, cov, test);
 		elseif algo == 7
 			result = backward_greedy(candidate_items, w1_M1, num_items, test);
@@ -30,11 +29,9 @@ function result = backward_greedy(candidate_items, w1_M1, num_items, test)
 	result = candidate_items; % Pool of items to discard from
 	Vb = w1_M1(candidate_items, :); % Corresponding latent vectors
 	alpha = zeros(numel(candidate_items), 1); % Value of the function - trace(inverse(VBVB^T))
-	%fprintf('%f\n', numel(candidate_items)-num_items)
 	for i=1:numel(candidate_items)-num_items % No. of runs = no. of items to be discarded
 		val = f(Vb); % Value of f() with all items still to be considered
 		for j=1:numel(result)
-			%tempVb = Vb;
 			alpha(j) = trace(sherman_morrison(val, Vb(j, :), '-')); % f() when item j is removed
 			if test == 1
 				fprintf('For item %d .... %f\n', result(j), alpha(j)-trace(val))
@@ -86,7 +83,6 @@ function result = acc_backward_greedy(candidate_items, w1_M1, num_items, test)
 		else % If it is not fresh, make it fresh
 			if test == 1
 				fprintf(' ...but not fresh\n', result(ind));
-				%disp(fresh')
 				disp(result);
 				disp(alpha')
 			end
@@ -101,11 +97,9 @@ function result = backward_greedy2(candidate_items, w1_M1, num_items, covariance
 	Vb = w1_M1(candidate_items, :); % Corresponding latent vectors
 	cov = covariance;
 	alpha = zeros(numel(candidate_items), 1); % Value of the function - trace(inverse(VBVB^T))
-	%fprintf('%f\n', numel(candidate_items)-num_items)
 	for i=1:numel(candidate_items)-num_items % No. of runs = no. of items to be discarded
 		val = bgs2(Vb, cov); % Value of f() with all items still to be considered
 		for j=1:numel(result)
-			%tempVb = Vb;
 			alpha(j) = trace(sherman_morrison(val, Vb(j, :)/sqrt(cov(j)), '-')); % f() when item j is removed
 			if test == 1
 				fprintf('For item %d .... %f\n', result(j), alpha(j)-trace(val))
@@ -160,7 +154,6 @@ function result = acc_backward_greedy2(candidate_items, w1_M1, num_items, covari
 		else % If it is not fresh, make it fresh
 			if test == 1
 				fprintf(' ...but not fresh\n', result(ind));
-				%disp(fresh')
 				disp(result');
 				disp(alpha')
 			end
@@ -176,7 +169,6 @@ function [result, time] = fwd_greedy(candidate_items, w1_M1, num_items, test)
 	Vb = [];
 	alpha = zeros(numel(candidate_items), 1);
 	temp_items = candidate_items;
-	%numel(temp_items)
 	k = size(w1_M1(1,:), 2);
 	for i=1:numel(candidate_items)
 		alpha(i) = trace(f(w1_M1(candidate_items(i), :))); % Value of having only each item
@@ -207,7 +199,6 @@ function [result, time] = fwd_greedy(candidate_items, w1_M1, num_items, test)
 	while numel(result) < num_items
 		% Get the index of the item with the max reduction in error
 		[~, ind] = max(alpha); 
-		%alpha'
 		% Add to result set
 		result = [result, temp_items(ind)];
 		Vb = [Vb; w1_M1(temp_items(ind), :)];
@@ -240,7 +231,6 @@ function [result, time] = acc_fwd_greedy(candidate_items, w1_M1, num_items, test
 	fresh = ones(numel(candidate_items), 1);
 	alpha = zeros(numel(candidate_items), 1);
 	temp_items = candidate_items;
-	%numel(temp_items)
 	k = size(w1_M1(1,:), 2);
 	for i=1:numel(candidate_items)
 		alpha(i) = trace(f(w1_M1(candidate_items(i), :))); % Value of having only each item
@@ -292,8 +282,6 @@ function [result, time] = acc_fwd_greedy(candidate_items, w1_M1, num_items, test
 			fresh = zeros(numel(fresh), 1);
 		else % If it is not fresh, make it fresh
 			fresh(ind) = 1;
-			%disp('boo')
-			%w1_M1(temp_items(ind), :)
 			alpha(ind) = l(f_M, w1_M1(temp_items(ind), :)); % Update alpha
 		end
 	end
@@ -323,7 +311,6 @@ function [result, time] = fwd_greedy2(candidate_items, w1_M1, num_items, covaria
 	% Add to result set
 	result = [temp_items(ind)];
 	Vb = [w1_M1(temp_items(ind), :)];
-	%cov = [covariance(ind)];
 	timeElapsed = toc;
 	time(numel(result):num_items) = time(numel(result):num_items) + timeElapsed;
 	if numel(result) == num_items
@@ -351,7 +338,6 @@ function [result, time] = fwd_greedy2(candidate_items, w1_M1, num_items, covaria
 		% Add to result set
 		result = [result, temp_items(ind)];
 		Vb = [Vb; w1_M1(temp_items(ind), :)];
-		%cov = [cov, covariance(ind)];
 		timeElapsed = toc;
 		time(numel(result):num_items) = time(numel(result):num_items) + timeElapsed;
 		tic
@@ -371,7 +357,6 @@ function [result, time] = acc_fwd_greedy2(candidate_items, w1_M1, num_items, cov
 	alpha = zeros(numel(candidate_items), 1);
 	result = [];
 	Vb = [];
-	%cov = [];
 	temp_items = candidate_items;
 	k = size(w1_M1(1,:), 2);
 	for i=1:numel(candidate_items)
@@ -388,7 +373,6 @@ function [result, time] = acc_fwd_greedy2(candidate_items, w1_M1, num_items, cov
 	% Add to result set
 	result = [temp_items(ind)];
 	Vb = [w1_M1(temp_items(ind), :)];
-	%cov = [covariance(ind)];
 	timeElapsed = toc;
 	time(numel(result):num_items) = time(numel(result):num_items) + timeElapsed;
 	if numel(result) == num_items
@@ -396,7 +380,7 @@ function [result, time] = acc_fwd_greedy2(candidate_items, w1_M1, num_items, cov
 	end
 	tic
 	temp_items(ind) = [];
-	f_M = f(Vb); %bgs2(Vb, covariance(ind)); % f(Vb);
+	f_M = f(Vb);
 	covariance(ind) = [];
 	
 	% We move to the next stage, and the alpha values are no longer fresh
@@ -427,12 +411,11 @@ function [result, time] = acc_fwd_greedy2(candidate_items, w1_M1, num_items, cov
 			% Add to result set
 			result = [result, temp_items(ind)];
 			Vb = [Vb; w1_M1(temp_items(ind), :)];
-			%cov = [cov, covariance(ind)];
 			timeElapsed = toc;
 			time(numel(result):num_items) = time(numel(result):num_items) + timeElapsed;
 			tic
 			temp_items(ind) = [];
-			f_M = f(Vb); %bgs2(Vb, covariance(ind)); %f(Vb);
+			f_M = f(Vb);
 			covariance(ind) = [];
 			
 			% We move to the next stage, and the alpha values are no longer fresh
@@ -440,7 +423,6 @@ function [result, time] = acc_fwd_greedy2(candidate_items, w1_M1, num_items, cov
 		else % If it is not fresh, make it fresh
 			if test == 1
 				fprintf(' ...but not fresh\n', temp_items(ind));
-				%disp(fresh')
 				disp(result);
 				disp(alpha')
 			end
@@ -452,8 +434,7 @@ end
 
 function result = f(M)
 	k = size(M(1,:), 2);
-	%size(M)
-	%size(M'*M)
+
 	%%%%% CHOICE OF LAMBDA MAKES A DIFFERENCE
 	lambda = 1;
 	result = pinv(M'*M + lambda*eye(k));
@@ -461,8 +442,7 @@ end
 
 function result = bgs2(M, cov)
 	k = size(M(1,:), 2);
-	%size(inv(diag(cov)))
-	%size(M)
+
 	lambda = 1;
 	result = pinv(M'*inv(diag(cov))*M + lambda*eye(k));
 end
@@ -477,13 +457,8 @@ end
 
 function result = sherman_morrison(A_inv, vj, c) % Rank one update through SM
 	if c == '-' % Rank one subtraction
-		%fprintf('Doing minus\n')
 		result = A_inv + (A_inv*vj'*vj*A_inv)/(1 - vj*A_inv*vj');
 	else % Rank one addition
-		%disp(vj)
-		%disp(size(vj*A_inv*vj'));
-		%vj
-		%size((A_inv*vj'*vj*A_inv))
 		result = A_inv - (A_inv*vj'*vj*A_inv)/(1 + vj*A_inv*vj');
 	end
 end

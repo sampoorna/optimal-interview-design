@@ -1,4 +1,3 @@
-*.png
-*.fig
 *.mat
 *.csv
+/code_BPMF

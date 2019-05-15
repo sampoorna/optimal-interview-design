@@ -51,7 +51,7 @@ if reload == 1
 end
 
 %%%%%%%%%%% INITIALIZATION %%%%%%%%%
-fprintf('Initializing ..........\n');  %max(warm_user_data(:, 2));
+fprintf('Initializing ..........\n');
 %lambda  = [20, 20, 20]; % (1, 5, 5) & (5, 10, 10) & (10, 10, 10) gives good random performance, (2, 2, 2) & (2, 2, 10) gives peaking behavior --- for ML 1M
 lambda  = [0.5, 0.5, 1]; %
 %lambda  = [2, 2, 2]; %
@@ -154,7 +154,6 @@ if retrain == 1
 			total_ratings = nnz(item_ratings);
 			if total_ratings > 0
 				p = histc(warm(item_ratings, 3), (1:MAX_RATING));
-				%p = p/warm_users_count;
 				p = reshape(p, [1, MAX_RATING]);
 				
 				p_ent0 = p/warm_users_count;
@@ -260,7 +259,6 @@ end
 			
 			cold_data = cold(find(cold(:, 2) == cold_subset(user)), :);
 			while numel(candidate_items) < num_items + 20
-				%fprintf('Too few items!\n')
 				ind = find(cold_users == cold_subset(user));
 				cold_users(ind) = [];
 				cold_subset(user) = randsample(setdiff(cold_users, cold_subset), 1);
@@ -269,7 +267,6 @@ end
 				candidate_items(row) = [];
 				high_cov = find(cov(candidate_items) > 1);
 				candidate_items(high_cov) = [];
-				%all_items{cold_subset(user)};
 				test_items = randsample(candidate_items, round(0.5*numel(candidate_items)));
 				candidate_items = setdiff(candidate_items, test_items);
 				% Remove items that we haven't seen in the training data
@@ -290,8 +287,6 @@ end
 				
 				tic
 				[result{a}, time] = greedySelect(a, candidate_items, w1_M1, num_items, cov(candidate_items), test);
-				
-				%result{a} = greedySelect(a, candidate_items, w1_M1, numel(candidate_items) - num_items, cov(candidate_items), test);
 				timeElapsed = toc;
 				
 				if a == 1
@@ -339,18 +334,12 @@ end
 			%%% Accelerated Forward
 			elseif a == 3 || a == 8
 				fprintf('Running accelerated forward...\n');
-				%tic
 				[result{a}, x] = greedySelect(a, candidate_items, w1_M1, num_items, cov(candidate_items), test);
-				%fgtime(:, 1) = fgtime(:, 1) + x;
-				%timeElapsed = toc;
-				%fgtime(num_items) = fgtime(num_items) + timeElapsed;
 				
+                % We only need to time it once. Returns: A matrix.
 				if a == 3
-					%fgtime(num_items, 1) = timeElapsed;
 					fgtime(:, 1) = fgtime(:, 1) + x; %%% AFG
 				elseif a == 8
-					%fgtime(num_items, 2) = timeElapsed;
-					%[result{a}, fgtime(:, 2)] = greedySelect(a, candidate_items, w1_M1, num_items, cov(candidate_items), test);
 					fgtime(:, 2) = fgtime(:, 2) + x; %%% FG
 				end
 				sorted_result = sort(result{a});
@@ -402,7 +391,7 @@ end
 				
 				functionval(num_items, a) = functionval(num_items, a) + trace(inv(w1_M1(sorted_result, :)'*w1_M1(sorted_result, :) + lambda(1)*eye(NUM_FACTORS)));
 			elseif a == 9
-				%fprintf('Running opposite of backward greedy...\n');
+				fprintf('Running opposite of backward greedy...\n');
 				tic
 				[result{a}, ~] = greedySelect(1, candidate_items, w1_M1, numel(candidate_items) - num_items, cov(candidate_items), test);
 				timeElapsed = toc;
@@ -537,15 +526,12 @@ end
 		for i=1:stepsize:num_items-1
 			fprintf('%f..........%d\n', size(result{1}, 2), num_items-i);
 			fidxs = [fidxs; num_items-i];
-			% if num_items-i <= NUM_FACTORS-5
-				% lambda = lambda2;
-			% end
+
 			for a=algos
 				est_rating = P_estimate(a, :)*w1_M1(test_items, :)' + mean_rating;
-				%if cont == 0
-					est_rating(est_rating > MAX_RATING) = MAX_RATING;
-					est_rating(est_rating < MIN_RATING) = MIN_RATING;
-				%est_rating = est_rating;
+
+                est_rating(est_rating > MAX_RATING) = MAX_RATING;
+                est_rating(est_rating < MIN_RATING) = MIN_RATING;
 				if a ~= 10
 					n = sqrt(sum((est_rating - test_ratings).^2)/numel(test_items));
 					user_size_accuracy(user, numel(result{a})) = n;
@@ -557,19 +543,14 @@ end
 					RMSE(numel(result{a}), a) = RMSE(numel(result{a}), a) + n;
 					P_error(numel(result{a}), a) = P_error(numel(result{a}), a) + norm(P_estimate(a, :) - w1_P1(cold_subset(user), :));
 					training_error(numel(result{a}), a) = training_error(numel(result{a}), a) + sqrt(sum(((P_estimate(a, :)*w1_M1(result{a}, :)' + mean_rating) - true_ratings{a}).^2)/numel(result{a}));
-				%else
-					%fprintf('Algo .... %d ... variance %f\n', a, var(est_rating))
 				end
-				%fprintf('%f ....%d......size of test item set %d\n', sum((est_rating - test_ratings).^2)/numel(test_items), numel(result{a}), numel(test_items))
+
 				if a == 1 || a == 6
 					temp_candidate_items = result{a}';
 					tic
-					%result{a} = greedySelect(a, temp_candidate_items, w1_M1, numel(temp_candidate_items) - num_items+i, cov(temp_candidate_items), test);
 					[result{a}, ~] = greedySelect(a, temp_candidate_items, w1_M1, num_items-i, cov(temp_candidate_items), test);
 					timeElapsed = toc;
 					result{a} = result{a}';
-					%result{a} = setdiff(temp_candidate_items, result{a});
-					%disp(result{a})
 					if a == 1
 						bg2time(1:num_items-i, 1) = bg2time(1:num_items-i, 1) + timeElapsed;
 					else
@@ -608,25 +589,13 @@ end
 					
 					functionval(numel(result{a}), a) = functionval(numel(result{a}), a) + trace(inv(w1_M1(result{a}, :)'*w1_M1(result{a}, :) + lambda(2)*eye(NUM_FACTORS)));
 				elseif a == 3 || a == 5 || a == 8 || a == 4 || a == 11 || a == 12 || a == 13 || a == 14
-					 if a == 12
+					if a == 12
 						result{a}(1:num_items-i);
 					end
-					
-					%if a == 3
-						%tic
-						%result{a} = greedySelect(a, candidate_items, w1_M1, num_items-i, cov(candidate_items), test);
-						%timeElapsed = toc;
-						%fgtime(num_items-i, 1) = timeElapsed;
-					%elseif a == 8
-						%tic
-						%result{a} = greedySelect(a, candidate_items, w1_M1, num_items-i, cov(candidate_items), test);
-						%timeElapsed = toc;
-						%fgtime(num_items-i, 2) = timeElapsed;
-					%elseif a == 5
-						result{a} = result{a}(1:num_items-i);
-					%end
+
+					result{a} = result{a}(1:num_items-i);
 					sorted_result = sort(result{a});
-					
+
 					if cont == 1
 						true_ratings{a} = true_P*w1_M1(sorted_result, :)' + mean_rating;
 					else
@@ -642,18 +611,16 @@ end
 					end
 					functionval(numel(result{a}), a) = functionval(numel(result{a}), a) + trace(inv(w1_M1(sorted_result, :)'*w1_M1(sorted_result, :) + lambda(2)*eye(NUM_FACTORS)));
 				elseif a == 10
-						temp_candidate_items = result{a};
+					temp_candidate_items = result{a};
 					for iter=1:num_iter
 						
-						%fprintf('NUmitems are ... %d ...andidate items are ...\n', num_items-i)
-						%disp(temp_candidate_items)
 						rng('shuffle');
 						result{a} = randsample(temp_candidate_items, num_items-i);
 						result{a} = sort(result{a});
 						if cont == 1
 							true_ratings{a} = true_P*w1_M1(result{a}, :)' + mean_rating;
 						else
-							true_ratings{a} = cold_data(find(ismember(cold_data(:, 1), result{a}')), 3)';%R(cold_subset(user), result{a}');
+							true_ratings{a} = cold_data(find(ismember(cold_data(:, 1), result{a}')), 3)';
 						end
 
 						P_estimate(a, :) = (lambda(1) * eye(NUM_FACTORS) + w1_M1(result{a}, :)' * w1_M1(result{a}, :)) \ w1_M1(result{a}, :)' * (true_ratings{a} - mean_rating)';
@@ -680,7 +647,7 @@ end
 					if cont == 1
 						true_ratings{a} = true_P*w1_M1(result{a}, :)' + mean_rating;
 					else
-						true_ratings{a} = cold_data(find(ismember(cold_data(:, 1), result{a}')), 3)';%R(cold_subset(user), result{a}');
+						true_ratings{a} = cold_data(find(ismember(cold_data(:, 1), result{a}')), 3)';
 					end
 					
 					P_estimate(a, :) = (lambda(3)* eye(NUM_FACTORS) + w1_M1(result{a}, :)'* inv(diag(cov(result{a})))* w1_M1(result{a}, :)) \ w1_M1(result{a}, :)' *inv(diag(cov(result{a})))*(true_ratings{a} - mean_rating)';
@@ -692,7 +659,6 @@ end
 		end
 		
 		% Get errors for the last iteration
-		
 		for a=algos
 			if a~=10 % All algos except random
 			est_rating = P_estimate(a, :)*w1_M1(test_items, :)' + mean_rating;
@@ -730,9 +696,9 @@ if cont == 1
 	figname = strcat(figname, '_cont');
 end
 
-%%% Generate graph plots
+%%%%%%%%%%% GENERATE PLOT GRAPHS %%%%%%%%%
 
-%% Plotting RMSE versus number of items selected for all algorithms
+%%% Plotting RMSE versus number of items selected for all algorithms
 fidxs = unique(fidxs);
 h = figure;
 hold on;
@@ -758,7 +724,7 @@ csvwrite(strcat(figname, '.csv'), RMSE)
 saveas(h, figname, 'fig');
 saveas(h, figname, 'png');
 
-%% Plotting error in user profile determination versus number of items selected for all algorithms
+%%% Plotting error in user profile determination versus number of items selected for all algorithms
 g = figure;
 hold on;
 for a=algos
@@ -784,7 +750,7 @@ csvwrite(strcat(figname, '.csv'), P_error)
 saveas(g, figname, 'fig');
 saveas(g, figname, 'png');
 
-%% Plotting runtime versus number of items selected for all algorithms
+%%% Plotting runtime versus number of items selected for all algorithms
 fgtime(fgtime == 0) = NaN;
 fidxs = ~isnan(fgtime(:, 1));
 
