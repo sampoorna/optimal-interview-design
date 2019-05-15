@@ -17,23 +17,23 @@ runTime = tic;
 if reload == 1
 	fprintf('Loading files ..........\n'); 
 	if dataset == 1 %%% Netflix
-		origdirec = '';
+		origdirec = '../data/netflix/';
 		MAX_ITEMS = 17770;
 	elseif dataset == 2 %%% Jester
-		load '../rating_matrix_all.mat';
-		load '../jester_data_withoutrat_randcold.mat';
-		load '../jester_w1_M1_20.mat';
+		load '../data/rating_matrix_all.mat';
+		load '../data/jester_data_withoutrat_randcold.mat';
+		load '../data/jester_w1_M1_20.mat';
 	elseif dataset == 3 %%% MovieLens 1M
-		origdirec = ''; 
+		origdirec = '../data/ml-1m/'; 
 		MAX_ITEMS = 3952;
 	elseif dataset == 4 %%% MovieLens 100K
-		origdirec = ''; 
+		origdirec = '../data/ml-100k/'; 
 		MAX_ITEMS = 1682;
 	elseif dataset == 5 %%% MovieLens 20M
-		origdirec = '';
+		origdirec = '../data/recsys/MovieLens/ml-20m/model/';
 		MAX_ITEMS = 131262;
 	elseif dataset == 6 %%% Epinions
-		origdirec = '';
+		origdirec = '../data/recsys/Epinions/model/';
 		MAX_ITEMS = 139738;
 	end
 	load(strcat(origdirec, 'data_withoutrat_randcold2.mat'));
