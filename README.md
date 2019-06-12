@@ -26,5 +26,24 @@ To run,
 The output of this script is a matrix of cold user vectors that we will use as ground truth in the next step.
 
 ## Running item selection algorithms
-Run greedyBudget.m
-Good luck figuring the code out (I'm serious, if you do, please clean it up). 
+This script has various parts to it.
+1. Loads processed training and test data.
+2. Runs various item selection algorithms and baselines.
+3. Computes test and training error (as RMSE).
+4. Computes run time.
+5. Plots run time and test error.
+
+To run,
+1. Fill in the directory where the model files (for the model trained on only ratings given by warm users) are stored.
+2. Set `dataset = x` for the dataset being used.
+3. There are other options as well, such as,
+    - retrain: set it to 1 when covariance needs to be computed again, else 0
+    - reload: set it to 1 when variables need to be loaded in the MATLAB workspace, else 0
+    - cont: set it to 1 to validate against P*Q (ideal setting) instead of actual ratings in the database (real setting), 0 otherwise
+4. Some parameters to set are
+    - NUM_FACTORS: Number of latent dimensions or size of latent vector
+    - lambda: Array of noise or hyper-parameters. They should be small numbers that are added to the the objective funtion to ensure invertibility
+    - num_items: Maximum number of items that are used to learn the cold user's profile. The experiment setup runs all the algorithms from 1 upto this many items.
+    - BUDGET: Number of cold users to average results across
+    - num_iter: Number of iterations to average results of the random baseline across
+    - algos: Array of numbers corresponding to the algorithms that should be run against each other in a single experiment

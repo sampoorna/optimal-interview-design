@@ -89,9 +89,7 @@ fprintf('Initializing .......... COMPLETE\n');
 fprintf('Running cont = %d experiments on dataset %s with %d max items, %d cold users and %d algos\n', cont, origdirec, num_items, BUDGET, numel(algos));
 
 %%% Get list of items rated by each cold user
-if retrain == 1
-	
-	
+if retrain == 1	
 	%%% Get covariances of user ratings
 	load(strcat(origdirec, 'w1_P1_', num2str(NUM_FACTORS), '.mat'));
 	cov = zeros(MAX_ITEMS, 1);
