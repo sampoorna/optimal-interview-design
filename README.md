@@ -11,7 +11,7 @@ To run,
 3. If working with a dataset not described in the file, please add it using the same variable names as for the other datasets.
 
 ## Running the PMF model
-Follow instructions given in https://github.com/sampoorna/probabilistic-matrix-factorization to train a PMF model on only ratings given by warm users (randomly determined in the previous step).
+Follow instructions given in https://github.com/sampoorna/probabilistic-matrix-factorization to train a PMF model on only ratings given by warm users (randomly determined in the previous step). Note that for these experiments, we only ran PMF with the diminishing step-size adaptation, and not Bayesian PMF.
 
 ## Computing user profiles
 Before running the experiments, we need to determine what the ground truth for our test set (cold users) will be. This is what we will compare our predicted user profiles against, to measure profile error. However, as they are cold users, they cannot be part of the dataset when we factorize the matrix of ratings.
