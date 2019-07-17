@@ -43,8 +43,23 @@ if reload == 1
 	else
 		load(strcat(origdirec, 'true_w1_P1_', num2str(NUM_FACTORS), '.mat'));
 	end
-	load(strcat(origdirec, 'covariance_cold_users_', num2str(NUM_FACTORS), '.mat'));
-	load(strcat(origdirec, 'ent0_entpop_pop.mat'));
+    
+    % If covariance has been computed before, load the saved results.
+    covariance_filename = strcat(origdirec, 'covariance_cold_users_', num2str(NUM_FACTORS), '.mat')
+    if isfile(covariance_filename)
+        load(covariance_filename);
+    else
+        fprintf('Warning! Could not find covariance file. If it has not been computed previously, consider running this script with retrain = 1.\n');
+    end
+    
+    % If baselines have been computed before, load the saved results.
+    baselines_filename = strcat(origdirec, 'ent0_entpop_pop.mat')
+    if isfile(baselines_filename)
+        load(baselines_filename);
+    else
+        fprintf('Warning! Could not find file containing baseline results. If they have not been computed previously, consider running this script with retrain = 1.\n');
+    end
+
 	MIN_RATING = min(warm(:, 3));
 	MAX_RATING = max(warm(:, 3));
 	fprintf('Loading files .......... COMPLETE\n'); 
@@ -110,9 +125,8 @@ if retrain == 1
 			count = count +1;
 		end
 	end
-	count
-	 fprintf('Calculating covariance ..........COMPLETE\n');
-	 save(strcat(origdirec, 'covariance_cold_users_', num2str(NUM_FACTORS), '.mat'), 'cov');
+	fprintf('Calculating covariance ..........COMPLETE\n');
+	save(strcat(origdirec, 'covariance_cold_users_', num2str(NUM_FACTORS), '.mat'), 'cov');
 	if gd == 1
 		load(strcat(origdirec, 'gd_w1_P1_', num2str(NUM_FACTORS), '.mat'))
 	else
@@ -207,6 +221,7 @@ if retrain == 1
 		[~, SortIndex] = sort(popular);
 		pop_items = pop_items(SortIndex);
 
+        save(strcat(origdirec, 'ent0_entpop_pop.mat'), 'ent0_items', 'ent_items', 'pop_items');
 	end
 end
 
