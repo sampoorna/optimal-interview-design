@@ -67,6 +67,7 @@ delim = " "
 filename = "ratings_data.txt"
 
 warm_data = []
+warm_data_items = []
 cold_data = []
 cold_users = []
 warm_users = []
@@ -91,8 +92,16 @@ for line in data:
 		cold_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
 	else:	
         warm_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
+        warm_data_items.append(line[itemColumn])
 		warm_users.append(line[userColumn])	
 	print "Processed movie: ", (line[itemColumn])
+
+## check if there exists some item that is only rated by cold_users, if so, remove them
+for idx, val in enumerate(cold_data):
+    if val[itemColumn] not in warm_data_items:
+        print('the item', val[itemColumn], 'is only rated by cold users')
+        cold_data = np.delete(cold_data, idx)
+        print('discarded item rated only by cold users')
 
 sio.savemat(netflixDir+'data_withoutrat_randcold2.mat', {'warm':warm_data, 'cold':cold_data})
 print "Saved file as .mat ..........."
