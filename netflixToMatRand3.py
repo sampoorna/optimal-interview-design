@@ -99,10 +99,10 @@ for line in data:
 ## check if there exists some item that is only rated by cold_users, if so, remove them
 ## because the orders of itemColumn and UserColumn have been swapped(0 to 1 and 1 to 0)
 ## to avoid possible confusion, we use val[0] to represent items. Should Not use val[itemColumn]
-for idx, val in list(enumerate(cold_data)):
+for idx, val in enumerate(cold_data):
     if val[0] not in warm_data_items:
         print('the item', val[0], 'is only rated by cold users')
-        cold_data = np.delete(cold_data, idx)
+        cold_data = np.delete(cold_data, idx, axis=0)
         print('discarded item rated only by cold users')
 
 sio.savemat(netflixDir+'data_withoutrat_randcold2.mat', {'warm':warm_data, 'cold':cold_data})
