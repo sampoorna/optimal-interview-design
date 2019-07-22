@@ -97,9 +97,11 @@ for line in data:
 	print "Processed movie: ", (line[itemColumn])
 
 ## check if there exists some item that is only rated by cold_users, if so, remove them
-for idx, val in enumerate(cold_data):
-    if val[itemColumn] not in warm_data_items:
-        print('the item', val[itemColumn], 'is only rated by cold users')
+## because the orders of itemColumn and UserColumn have been swapped(0 to 1 and 1 to 0)
+## to avoid possible confusion, we use val[0] to represent items. Should Not use val[itemColumn]
+for idx, val in list(enumerate(cold_data)):
+    if val[0] not in warm_data_items:
+        print('the item', val[0], 'is only rated by cold users')
         cold_data = np.delete(cold_data, idx)
         print('discarded item rated only by cold users')
 
