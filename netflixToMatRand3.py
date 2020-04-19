@@ -53,7 +53,7 @@ userColumn = 0
 ratingColumn = 2
 delim = ","
 filename = "ratings.csv"
-'''
+
 
 ### Dataset values for Epinions
 netflixDir = ""
@@ -65,45 +65,93 @@ userColumn = 0
 ratingColumn = 2
 delim = " "
 filename = "ratings_data.txt"
+'''
+### Dataset values for goodread_interaction
+netflixDir = "./data/goodread_interaction/"
+# numOfUsers = 808749
+# numOfUsers = 16174
+numOfUsers = 876145
+numOfItems = 1561465
+userIndex = 808749
+itemColumn = 1
+userColumn = 0
+ratingColumn = 3
+delim = ","
+filename = "goodreads_interactions.csv"
+
 
 warm_data = []
-warm_data_items = []
 cold_data = []
 cold_users = []
-warm_users = []
+warm_items = []
+# warm_users = []
+##nSample = 4000000
 
 cold_users_split = 0.3
-num_cold_users = int(cold_users_split*numOfUsers)
+num_cold_users = int(cold_users_split * numOfUsers)
 
-print "Reading file.............."
-data = np.genfromtxt (netflixDir+filename, delimiter=delim)
-print "...............File reading complete!"
+print("Reading file..............")
+data = np.genfromtxt(netflixDir + filename, delimiter=delim)
+print("...............File reading complete!")
+data = np.delete(data, 0, axis=0)   # comment this line out if not processing goodread_interaction
+print("the shape of data is", data.shape)
 
-print "Processing users ..."
+# data = data[np.random.choice(data.shape[0], nSample, replace=False), :]
+# print("the shape of sampled data is", data.shape)
+# print("..............Sample complete!")
+
+print("Processing users ...")
 arr = np.array(data)
 allUsers = arr[:, userColumn]
+Userlist = list(allUsers)
 uniqueUsers = set(allUsers)
+print("there are", len(uniqueUsers), "unique users")
 cold_users = np.random.choice(list(uniqueUsers), num_cold_users)
-print "Processing users ... COMPLETE!"
+print("Processing users ... COMPLETE!")
+'''
+for line in data:
+    if line[userColumn] not in cold_users:
+        warm_items.append(line[itemColumn])
+print("Warm items done!")
 
 for line in data:
-	print line[itemColumn]
-	if line[userColumn] in cold_users: # Known cold user
-		cold_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
-	else:	
+    if line[userColumn] not in cold_users:
         warm_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
-        warm_data_items.append(line[itemColumn])
-		warm_users.append(line[userColumn])	
-	print "Processed movie: ", (line[itemColumn])
+    elif (line[userColumn] in cold_users) and (line[itemColumn] in warm_items):
+        cold_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
+print("Processed Warm/Cold Done!")
+'''
+for line in data:
+    # print(line[itemColumn])
+    if line[userColumn] in cold_users:  # Known cold user
+        cold_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
+    else:
+        warm_data.append([line[itemColumn], line[userColumn], line[ratingColumn]])
+        # warm_users.append(line[userColumn])
+    # print("Processed movie: ", (line[itemColumn]))
 
-## check if there exists some item that is only rated by cold_users, if so, remove them
-## because the orders of itemColumn and UserColumn have been swapped(0 to 1 and 1 to 0)
-## to avoid possible confusion, we use val[0] to represent items. Should Not use val[itemColumn]
-for val in cold_data:
-    if val[0] not in warm_data_items:
-        print('the item', val[0], 'is only rated by cold users')
-        cold_data.remove(val)
-print('discarded items rated only by cold users, done')
+print("processed warm, done!")
+warm_data = np.asarray(warm_data)
+
+
+# check if there exists some item that is only rated by cold_users, if so, remove them
+# because the orders of itemColumn and UserColumn have been swapped(0 to 1 and 1 to 0)
+# to avoid possible confusion, we use val[0] to represent items. Should Not use val[itemColumn]
+def determine(x):
+    print('processing original cold_data: ' + str(x))
+    if x[0] in warm_data[:, 0]:
+        return True
+    else:
+        return False
+
+
+print('the shape of warm_array is', warm_data.shape)
+
+cold_data = [x for x in cold_data if determine(x)]
+print('discarded items rated only by cold users, done!')
+
+warm_data = np.asarray(warm_data)
+cold_data = np.asarray(cold_data)
 
 sio.savemat(netflixDir+'data_withoutrat_randcold2.mat', {'warm':warm_data, 'cold':cold_data})
 print "Saved file as .mat ..........."
